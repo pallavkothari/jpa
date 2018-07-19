@@ -2,6 +2,7 @@ package com.pk.jpa;
 
 import com.pk.jpa.closingPrice.ClosingPrice;
 import com.pk.jpa.closingPrice.ClosingPriceRepo;
+import com.pk.jpa.closingPrice.ClosingPriceService;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,14 +27,25 @@ public class JpaApplicationTests {
 
     @Test
     public void closingPriceTests() {
-        ClosingPrice price = ClosingPrice.builder().symbol("CRM").date(LocalDate.now()).closingPrice(100.00).build();
-        repo.save(price);
+        ClosingPrice expected = ClosingPrice.builder().symbol("CRM").date(LocalDate.now()).closingPrice(100.00).build();
+        repo.save(expected);
 
         List<ClosingPrice> closingPrices = repo.findBySymbol("CRM");
-        assertThat(closingPrices, is(Lists.newArrayList(price)));
+        assertThat(closingPrices, is(Lists.newArrayList(expected)));
 
         Optional<ClosingPrice> crm = repo.findById(ClosingPrice.CompositeKey.builder().date(LocalDate.now()).symbol("CRM").build());
         assertTrue(crm.isPresent());
-        assertThat(crm.get(), is(price));
+        assertThat(crm.get(), is(expected));
+    }
+
+    @Test
+    public void staticAccessTest() {
+        ClosingPrice expected = ClosingPrice.builder().symbol("CRM").date(LocalDate.now()).closingPrice(100.00).build();
+        ClosingPrice.CompositeKey key = ClosingPrice.CompositeKey.builder().date(LocalDate.now()).symbol("CRM").build();
+        repo.save(expected);
+
+        Optional<ClosingPrice> price = ClosingPriceService.get().findById(key);
+        assertTrue(price.isPresent());
+        assertThat(price.get(), is(expected));
     }
 }
